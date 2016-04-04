@@ -1,0 +1,125 @@
+{{outlet}}
+
+<select value={{dynamicIcon}} onchange={{action (mut dynamicIcon) value="target.value"}}>
+  <option>--nothing--</option>
+  <option>pull</option>
+  <option>pulse</option>
+  <option>code</option>
+  <option>issue</option>
+  <option>graph</option>
+  <option>gear</option>
+</select>
+
+<input placeholder="count"
+       value={{dynamicCount}}
+       oninput={{action (mut dynamicCount) value="target.value"}}>
+<br>
+<h3>Basic Yield example</h3>
+
+<p>callback is to block, as yield is to invoke callback.</p>
+
+<p>When thinking about `yield` and `blocks`, it is often easiest to think of a
+block as a JavaScript callback, and a yield as the invocation of a JavaScript
+callback.</p>
+
+
+Given the following component + block:
+<pre>
+
+\{{#github-octicon icon=dynamicIcon count=dynamicCount}}
+  Pull Request
+\{{/github-octicon}}
+
+</pre>
+
+Is equivelant to the following JavaScript
+
+<dl>
+  <dt>githubOcticon:</dt>
+  <dd>function</dd>
+
+  <dt>icon=dynamicIcon count=dynamicCount:</dt>
+  <dd>arguments to githubOcticon</dd>
+
+  <dt>"Pull Request":</dt>
+  <dd>blocks return value</dd>
+</dl>
+
+and if expressed as JavaScript, this is likely to look like the following:
+<pre>
+
+return githubOcticon({ icon: dynamicIcon, count: dynamicCount }, function() {
+  return 'Pull Request';
+});
+</pre>
+
+But how does one invoke the callback, and assign its return value to the UI?
+
+<pre>
+  // withing templates/components/github-octicon.hbs
+  \{{yield}} // invokes the block, and displays the return value inline
+</pre>
+
+<h4>running example</h4>
+{{#github-octicon icon=dynamicIcon count=dynamicCount}}
+  Pull Request
+{{/github-octicon}}
+
+<br>
+<hr>
+<br>
+
+<h3>Advanced Yield example (with arguments)</h3>
+
+largely the same, except this time we are passing arguments to the block invocation
+
+In JavaScript:
+
+<pre>
+function githubOcticon(args, callback) {
+  return callback(1, 2);
+}
+</pre>
+
+now in this example, we actually pass a pojo as an argument when invoking the callback
+
+<pre>
+function githubOcticon(args, callback) {
+  return callback({ icon: ..., count: 0});
+}
+</pre>
+
+which looks like:
+
+<pre>
+\{{yield (hash icon='some-icon' count='some-count')}}
+</pre>
+
+when passing entirely components, we must use the component helper. Which takes
+a first argument of the component name, and the rest as parameters
+
+<pre>
+\{{yield (hash icon=(component 'some-icon-component' icon=iconPath)
+               count=(component 'some-count-component' count=count))}}
+</pre>
+
+
+<pre>
+\{{#github-octicon-advanced icon=dynamicIcon count=dynamicCount as |g|}}
+  \{{g.icon}} Pull Request \{{g.count}}
+\{{/github-octicon-advanced}}
+</pre>
+
+Is largely equivelant to the following JavaScript
+
+<pre>
+return githubOcticon({ icon: dynamicIcon, count: dynamicCount }, function(g) {
+  return g.icon() + 'Pull Request' + g.count();
+});
+</pre>
+
+<h4> running example </h4>
+{{#github-octicon-advanced icon=dynamicIcon count=dynamicCount as |g|}}
+  {{g.icon}} Pull Request {{g.count}}
+{{/github-octicon-advanced}}
+
